@@ -24,14 +24,14 @@ class GameClient:
         return headers
 
     def _get(self, path: str) -> Dict[str, Any]:
-        r = requests.get(f"{self.base_url}{path}", headers=self._headers(), timeout=120)
+        r = requests.get(f"{self.base_url}{path}", headers=self._headers(), timeout=None)
         r.raise_for_status()
         return r.json().get("data", {})
 
     def _post(self, path: str, payload: Dict[str, Any], require_auth: bool = True) -> Dict[str, Any]:
         if require_auth and not self.api_token:
             return {"ok": False, "error": {"code": "NO_TOKEN", "message": "No API token. Register first."}}
-        r = requests.post(f"{self.base_url}{path}", json=payload, headers=self._headers(), timeout=30)
+        r = requests.post(f"{self.base_url}{path}", json=payload, headers=self._headers(), timeout=None)
         r.raise_for_status()
         return r.json()
 
