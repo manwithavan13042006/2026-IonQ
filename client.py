@@ -24,14 +24,14 @@ class GameClient:
         return headers
 
     def _get(self, path: str) -> Dict[str, Any]:
-        r = requests.get(f"{self.base_url}{path}", headers=self._headers(), timeout=None)
+        r = requests.get(f"{self.base_url}{path}", headers=self._headers(), timeout=120)
         r.raise_for_status()
         return r.json().get("data", {})
 
     def _post(self, path: str, payload: Dict[str, Any], require_auth: bool = True) -> Dict[str, Any]:
         if require_auth and not self.api_token:
             return {"ok": False, "error": {"code": "NO_TOKEN", "message": "No API token. Register first."}}
-        r = requests.post(f"{self.base_url}{path}", json=payload, headers=self._headers(), timeout=None)
+        r = requests.post(f"{self.base_url}{path}", json=payload, headers=self._headers(), timeout=30)
         r.raise_for_status()
         return r.json()
 
@@ -98,11 +98,17 @@ class GameClient:
         if not self.player_id:
             return {"ok": False, "error": {"code": "NOT_REGISTERED", "message": "Not registered"}}
 
+        # Handle both QuantumCircuit and OpenQASM string
+        if isinstance(circuit, str):
+            circuit_qasm = circuit
+        else:
+            circuit_qasm = qasm3.dumps(circuit)
+
         payload = {
             "player_id": self.player_id,
             "edge": [edge[0], edge[1]],
             "num_bell_pairs": int(num_bell_pairs),
-            "circuit_qasm": qasm3.dumps(circuit),
+            "circuit_qasm": circuit_qasm,
             "flag_bit": int(flag_bit),
         }
         return self._post("/v1/claim_edge", payload)
